@@ -136,7 +136,6 @@ def motion_kinds(point_detect):
 def motion_detection(point_3d):
     global first_loop, cnt, fifteen_temporary_points, three_temporary_points
     if first_loop == True:
-        #  original 15 point3d
         fifteen_temporary_points[cnt - 1] = [point_3d[0],
                             point_3d[1],
                             point_3d[2]]
@@ -147,25 +146,25 @@ def motion_detection(point_3d):
             return motion_kinds(fifteen_temporary_points)
 
     else:
+        if point_3d[0] - fifteen_temporary_points[0] >= 0.5:
+            
+            pass
         if cnt <= 2:
             three_temporary_points[cnt] = [point_3d[0],
                                 point_3d[1],
                                 point_3d[2]]
             cnt+=1
-
         else:
             for ii in range(0,12):
                 fifteen_temporary_points[int(ii)] = [fifteen_temporary_points[int(ii)+3][0],
                                                     fifteen_temporary_points[int(ii)+3][1],
                                                     fifteen_temporary_points[int(ii)+3][2]]
-                
             for ii in range(12,15):
                 fifteen_temporary_points[int(ii)] = [three_temporary_points[int(ii)-12][0],
                                     three_temporary_points[int(ii)-12][1],
                                     three_temporary_points[int(ii)-12][2]]
             cnt = 0
         return motion_kinds(fifteen_temporary_points)
- 
 # Main content begins
 if __name__ == "__main__":
     try:
@@ -173,14 +172,11 @@ if __name__ == "__main__":
         config = rs.config()
         config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
         config.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
-
         # Start the realsense pipeline
         pipeline = rs.pipeline()
         pipeline.start(config)
-
         # Create align object to align depth frames to color frames
         align = rs.align(rs.stream.color)
-
         # Get the intrinsics information for calculation of 3D point
         unaligned_frames = pipeline.wait_for_frames()
         frames = align.process(unaligned_frames)
@@ -188,23 +184,19 @@ if __name__ == "__main__":
         depth_intrinsic = depth.profile.as_video_stream_profile().intrinsics
         color = frames.get_color_frame()
         color_image = np.asanyarray(color.get_data())
-
         # Initialize the cubemos api with a valid license key in default_license_dir()
         skeletrack = skeletontracker(cloud_tracking_api_key="")
         joint_confidence = 0.2
-
         # Create window for initialisation
         window_name = "cubemos skeleton tracking with realsense D400 series"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
         out = cv2.VideoWriter('body_yen_tudo.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
         # out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (848,480))
-        
         first_loop = True
         three_temporary_points = np.arange(3).reshape((3,1)).tolist()
         fifteen_temporary_points = np.arange(15).reshape((15,1)).tolist()
         cnt = 0
         loaded_model = pickle.load(open('sp/traindongtac.sav', 'rb'))
-
         while True:
             # Create a pipeline object. This object configures the streaming camera and owns it's handle
             unaligned_frames = pipeline.wait_for_frames()
@@ -213,32 +205,21 @@ if __name__ == "__main__":
             color = frames.get_color_frame()
             if not depth or not color:
                 continue
-
             # Convert images to numpy arrays
             depth_image = np.asanyarray(depth.get_data())
             color_image = np.asanyarray(color.get_data())
             color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
-
             # perform inference and update the tracking id
             skeletons = skeletrack.track_skeletons(color_image)
             # print(skeletons)
             # render the skeletons on top of the acquired image and display it
             cm.render_result(skeletons, color_image, joint_confidence)
-            
-            
-            
             points3d_skeleton = render_ids_3d(color_image, skeletons, depth, depth_intrinsic, joint_confidence)
+
             if points3d_skeleton is not None:
                 montion_kind = motion_detection(points3d_skeleton[4])
                 print(montion_kind)
-            # if montion_kind not None:
-            #     if montion_kind == 1:
-            #         pass
-            #     elif montion_kind == 2:
-            #         pass
-            #     elif montion_kind == 3:
-            #         pass
-            
+                        
             cv2.imshow(window_name, color_image)
             if cv2.waitKey(1) == 27:
                 break

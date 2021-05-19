@@ -30,8 +30,11 @@ def motion_kinds(point_detect):
         detect = np.reshape(detect,(1,45))
 
         a = loaded_model.predict(detect)
+
         plt.plot(x, y, color = 'black' , linewidth=2,
             label="dongtac %d" %a)
+        plt.show()
+
         return a
 
 def motion_detection(point_3d):
@@ -46,8 +49,12 @@ def motion_detection(point_3d):
             first_loop = False
             cnt = 0
             return motion_kinds(fifteen_temporary_points)
-
     else:
+        # print('test ne')
+        # print('hieu x = \n',point_3d[0]-fifteen_temporary_points[14][0])
+        # print('hieu y = \n',point_3d[1]-fifteen_temporary_points[14][1])
+        # print('hieu z = \n',point_3d[2]-fifteen_temporary_points[14][2])
+        
         if cnt <= 2:
             three_temporary_points[cnt] = [point_3d[0],
                                 point_3d[1],
@@ -65,15 +72,16 @@ def motion_detection(point_3d):
                                     three_temporary_points[int(ii)-12][1],
                                     three_temporary_points[int(ii)-12][2]]
             cnt = 0
+            
         return motion_kinds(fifteen_temporary_points)
- 
+
  
 if __name__ == "__main__":
     try:
-        cap1 = cv2.VideoCapture('/home/bao/Desktop/DATN_GuongTuongTac/dongtac_xoaytron.avi')
+        cap1 = cv2.VideoCapture('/home/bao/Desktop/DATN/videosource/dongtac_xoaytron.avi')
 
-        f1 = np.load("dongtac_xoaytron.npy")
-        loaded_model = pickle.load(open('sp/traindongtac.sav', 'rb'))
+        f1 = np.load("/home/bao/Desktop/DATN/npy_source/dongtac_xoaytron.npy")
+        loaded_model = pickle.load(open('/home/bao/Desktop/DATN/sp/traindongtac.sav', 'rb'))
 
         first_loop = True
         three_temporary_points = np.arange(3).reshape((3,1)).tolist()
@@ -87,9 +95,8 @@ if __name__ == "__main__":
             if point_3d is not None:
                 
                 k = motion_detection(point_3d)
-                print(k)
+                # print(k)
             cv2.imshow('video',frame)
-            plt.show()
 
             if cv2.waitKey(30) ==27 :
                 break
