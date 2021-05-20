@@ -56,6 +56,7 @@ def motion_detection(point_3d):
         # print('hieu z = \n',point_3d[2]-fifteen_temporary_points[14][2])
         
         if cnt <= 2:
+                          
             three_temporary_points[cnt] = [point_3d[0],
                                 point_3d[1],
                                 point_3d[2]]
@@ -93,8 +94,13 @@ if __name__ == "__main__":
             ret,frame = cap1.read()
             point_3d = f1[int(index)]
             if point_3d is not None:
-                
-                k = motion_detection(point_3d)
+                if first_loop == True:
+                    k = motion_detection(point_3d)
+                else:
+                    if abs(point_3d[0]-fifteen_temporary_points[14][0]) <= 0.05 and abs(point_3d[1]-fifteen_temporary_points[14][1])<=0.05 and abs(point_3d[2]-fifteen_temporary_points[14][2])<=0.05:
+                        continue
+                    else:
+                        k = motion_detection(point_3d)
                 # print(k)
             cv2.imshow('video',frame)
 

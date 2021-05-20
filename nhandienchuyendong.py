@@ -183,20 +183,20 @@ if __name__ == "__main__":
                 color_image, skeletons, depth, depth_intrinsic, joint_confidence
             )
             if vong_dau == True:
-                            #save first 3d point 
-                            if cnt == 0: point_3di = point_3d
-                            #  original 17 point3d
-                            point_detect[cnt - 1] = [point_3d[0],
-                                                point_3d[1],
-                                                point_3d[2]]
-                            cnt+=1
-                            # printp(cnt)
-                            if cnt >= 15: 
-                                vong_dau = False
-                                
+                #save first 3d point 
+                if cnt == 0: point_3di = point_3d
+                #  original 17 point3d
+                point_detect[cnt - 1] = [point_3d[0],
+                                    point_3d[1],
+                                    point_3d[2]]
+                cnt+=1
+                # printp(cnt)
+                if cnt >= 15: 
+                    vong_dau = False
+                    
 
 
-                            #back 17 point 3d
+                #back 17 point 3d
             else:
                 if cnt_2 >= 3: wait = False
                 if wait == True:
