@@ -3,7 +3,7 @@ from collections import namedtuple
 import util as cm
 import cv2
 import time
-import pyrealsense2 as rs
+# import pyrealsense2 as rs
 import math
 import numpy as np
 from skeletontracker import skeletontracker
@@ -15,7 +15,7 @@ from sklearn.datasets import load_iris
 from sklearn import svm
 from sklearn import metrics
 
-import numpy as np
+# import numpy as np
 import pickle
 import cv2
 
