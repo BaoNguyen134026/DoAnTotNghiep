@@ -157,7 +157,7 @@ if __name__ == "__main__":
         # Create window for initialisation
         window_name = "cubemos skeleton tracking with realsense D400 series"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
-        out = cv2.VideoWriter('sp/dongtac_im.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
+        out = cv2.VideoWriter('sp/dongtac_im.mp4',cv2.VideoWriter_fourcc('MP4V'), 30, (color_image.shape[1],color_image.shape[0]))
         # out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (848,480))
 
         while True:
