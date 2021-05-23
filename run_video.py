@@ -4,7 +4,7 @@ import cv2
 from random import randint
 import time
 
-cap1 = cv2.VideoCapture('/home/bao/Desktop/DOAN/doan_totnghiep/sp/dongtac_im.avi')
+cap1 = cv2.VideoCapture('/home/bao/Desktop/DoAnTotNghiep/videosource/body_yen_tudo.avi')
 
 for index in range(int(cap1.get(7))):
     ret,frame = cap1.read()

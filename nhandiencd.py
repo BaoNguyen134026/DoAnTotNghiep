@@ -80,10 +80,10 @@ def motion_detection(point_3d):
  
 if __name__ == "__main__":
     try:
-        cap1 = cv2.VideoCapture('/home/bao/Desktop/DATN/videosource/dongtac_xoaytron.avi')
+        cap1 = cv2.VideoCapture('/home/bao/Desktop/DoAnTotNghiep/videosource/dongtac_xoaytron.avi')
 
-        f1 = np.load("/home/bao/Desktop/DATN/npy_source/dongtac_xoaytron.npy")
-        loaded_model = pickle.load(open('/home/bao/Desktop/DATN/sp/traindongtac.sav', 'rb'))
+        f1 = np.load("/home/bao/Desktop/DoAnTotNghiep/npy_source/dongtac_xoaytron.npy")
+        loaded_model = pickle.load(open('/home/bao/Desktop/DoAnTotNghiep/sp/traindongtac.sav', 'rb'))
 
         first_loop = True
         three_temporary_points = np.arange(3).reshape((3,1)).tolist()
