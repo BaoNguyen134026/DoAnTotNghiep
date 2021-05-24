@@ -51,11 +51,7 @@ def motion_detection(point_3d):
             cnt = 0
             return motion_kinds(fifteen_temporary_points)
     else:
-        # print('test ne')
-        # print('hieu x = \n',point_3d[0]-fifteen_temporary_points[14][0])
-        # print('hieu y = \n',point_3d[1]-fifteen_temporary_points[14][1])
-        # print('hieu z = \n',point_3d[2]-fifteen_temporary_points[14][2])
-        
+       
         if cnt <= 2:
                           
             three_temporary_points[cnt] = [point_3d[0],

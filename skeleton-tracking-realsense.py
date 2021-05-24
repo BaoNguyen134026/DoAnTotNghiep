@@ -4,6 +4,7 @@ import util as cm
 import cv2
 import time
 import pyrealsense2 as rs
+
 import math
 import numpy as np
 from skeletontracker import skeletontracker
@@ -98,12 +99,12 @@ def render_ids_3d(
                     # print(type(joint_index))
                     i = "{}".format(joint_index)
                     # print(save)
-                    if joint_index == 4:
+                    if joint_index == 4 and skeleton_2D.id == 1:
                         save.append(point_3d)
                         out.write(color_image)
-                        np.save('sp/dongtac_im',save)
+                        np.save('videosource/tonghop',save)
                         # aaa+=1
-                        # print(aaa)
+                        print('saving')
                     
                     cv2.putText(
                         render_image,
@@ -157,8 +158,7 @@ if __name__ == "__main__":
         # Create window for initialisation
         window_name = "cubemos skeleton tracking with realsense D400 series"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
-        out = cv2.VideoWriter('sp/dongtac_im.mp4',cv2.VideoWriter_fourcc('MP4V'), 30, (color_image.shape[1],color_image.shape[0]))
-        # out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (848,480))
+        out = cv2.VideoWriter('videosource/tonghop.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
 
         while True:
             # Create a pipeline object. This object configures the streaming camera and owns it's handle
