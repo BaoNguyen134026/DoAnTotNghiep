@@ -5,7 +5,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.datasets import load_iris
 from sklearn import svm
 from sklearn import metrics
-
+import time
 import numpy as np
 import pickle
 import cv2
@@ -14,22 +14,26 @@ import matplotlib.pyplot as plt
 
 def motion_kinds(point_detect):
         point_detect = np.array(point_detect)
-        detect = np.arange(len(point_detect)).reshape((len(point_detect),1)).tolist()
+        detect = np.arange(len(point_detect)).reshape(len(point_detect),1).tolist()
         i_point_detect = point_detect[0]
-        for i in range(len(point_detect)):
-            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-i_point_detect[i][0])
-                                    +m.pow(point_detect[i][1]-i_point_detect[i][1])
-                                    +m.pow(point_detect[i][2]-i_point_detect[i][2]))
-        
-        for i in range(0,15):
-            detect[int(i)] =  [point_detect[int(i)][0] - i_point_detect[0],
-                                point_detect[int(i)][1] - i_point_detect[1],
-                                point_detect[int(i)][2] - i_point_detect[2]]
-        detect=np.array(detect)
-        detect = np.reshape(detect,(1,45))
-        a = loaded_model.predict(detect)
-        return a
 
+        for i in range(len(point_detect)):
+            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-i_point_detect[0],2)
+                                    +m.pow(point_detect[i][1]-i_point_detect[1],2)
+                                    +m.pow(point_detect[i][2]-i_point_detect[2],2))
+            # P15_distance[i] = 1
+        b = [i for i in P15_distance if i >0.1]
+        print('len(b) =',len(b))
+        if len(b) > 12:
+            for i in range(0,15):
+                detect[int(i)] =  [point_detect[int(i)][0] - i_point_detect[0],
+                                    point_detect[int(i)][1] - i_point_detect[1],
+                                    point_detect[int(i)][2] - i_point_detect[2]]
+            detect=np.array(detect)
+            detect = np.reshape(detect,(1,45))
+            a = loaded_model.predict(detect)
+        else: a = [0]
+        return a 
 def motion_detection(point_3d):
     global first_loop, cnt, Points_15, Points_3
     if first_loop == True:
@@ -68,18 +72,19 @@ if __name__ == "__main__":
         first_loop = True
         Points_3 = np.arange(3).reshape((3,1)).tolist()
         Points_15 = np.arange(15).reshape((15,1)).tolist()
-        P15_distance = np.arange(15).reshape((15,1)).tolist()
+        P15_distance = np.arange(15).reshape((15,)).tolist()
         cnt = 0
         #run video
-        d = m.sqrt(m.pow()+m.pow()+m.pow())
         for index in range(int(cap1.get(7))):
             ret,frame = cap1.read()
             point_3d = f1[int(index)]
             if point_3d is not None:
-                
-                    pass
+                k = motion_detection(point_3d)
+                print('k=',k)
+                # pass
             #show video
             cv2.imshow('video',frame)
+            time.sleep(0.25)
             if cv2.waitKey(30) ==27 :
                 break
     except Exception as ex:

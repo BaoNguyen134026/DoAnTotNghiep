@@ -14,6 +14,10 @@ import matplotlib.pyplot as plt
 
 
 
-a = np.arange(15).reshape((15,)).tolist()
+a = np.arange(15).reshape((15,))
 print(a)
-print(np.count_nonzero(a>5))
+b = [i for i in a if i >5]
+print('b = ',b)
+print('len b = ',len(b))
+# enumerate   
+# print(a.count(1))
