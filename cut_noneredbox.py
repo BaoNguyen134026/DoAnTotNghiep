@@ -7,8 +7,8 @@ import time
 if __name__ == "__main__":
     try:
         #load video and point 3d
-        cap = cv2.VideoCapture('/home/bao/Desktop/DOAN/doan_totnghiep/sp/dongtac_im.avi')
-        points_3d = np.load("sp/dongtac_im.npy")
+        cap = cv2.VideoCapture('/home/bao/Desktop/video/source_train/trai.avi')
+        points_3d = np.load("/home/bao/Desktop/video/source_train/trai.npy")
 
         #setup
         name_video_p3d = 'sp/data_im'

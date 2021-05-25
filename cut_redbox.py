@@ -14,53 +14,46 @@ def detect_redbox(frame,x,y,w,h):
     crop = red_chanel[y:y+h,x:x+w] 
     crop = cv2.GaussianBlur(crop,(5,5),0)
 
-    _,thresh = cv2.threshold(crop,150,255,cv2.THRESH_BINARY)
+    _,thresh = cv2.threshold(crop,200,255,cv2.THRESH_BINARY)
 
-    # print(np.count_nonzero(thresh==255))
-    if np.count_nonzero(thresh==255)>300:# >1 is okey
+    print(np.count_nonzero(thresh==255))
+    if np.count_nonzero(thresh==255)>500:# >1 is okey
         return True
     else: return False
 
 if __name__ == "__main__":
     try:
         #load video and point 3d
-        cap = cv2.VideoCapture('/home/bao/Desktop/DOAN/doan_totnghiep/dongtac_xoaytron.avi')
-        points_3d = np.load("dongtac_xoaytron.npy")
-
+        cap = cv2.VideoCapture('/home/bao/Desktop/video/source_train/xuong.avi')
+        points_3d = np.load("/home/bao/Desktop/video/source_train/xuong.npy")
         #setup
-        name_video_p3d = 'sp/dongtacxoaytron'
-        # x,y = 275,190
-        # w,h = 30,30
-        x,y = 322,123
-        w,h = 30,17
-
+        name_video_p3d = '/home/bao/Desktop/video/sp/xuong'
+        x,y,w,h = 550,228,30,20
         out = cv2.VideoWriter(name_video_p3d +'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (848,480))
         save = False
         cnt = 0
-
         element = np.arange(15).reshape((15,1)).tolist()
-               
         element_th = 0
         matrix = []
-        
+        k = 1
         #read frame from video
-        for index in range(int(cap.get(7))):
-                index = index + 5
+        for index in range(int(cap.get(7))-8):
+                index = index + 8
                 ret,frame = cap.read()
                 if detect_redbox(frame,x,y,w,h) == True:
-                    print(index)
                     if cnt < 1:
                         save = True
                         point_n = points_3d[int(index)]
                 if save == True:
                     i = "{}".format(index)
-                    cv2.putText(frame,'frame: '+str(i) + ' SAVING',(30,45),cv2.FONT_HERSHEY_DUPLEX,1,(255,0,0),1,)
+                    cv2.putText(frame,'frame: '+str(i)+' /'+str(k)+'/ '+ ' SAVING '+str(cnt),(30,45),cv2.FONT_HERSHEY_DUPLEX,1,(255,0,0),1,)
                     cv2.imshow('frame red:',frame)
                     cnt+=1
                     out.write(frame)
                     element[cnt-1] = [points_3d[int(index)][0] - point_n[0], points_3d[int(index)][1] - point_n[1],points_3d[int(index)][2] - point_n[2]]
                     # print(element)
                     if cnt >= 15:
+                        k+=1
                         save = False
                         cnt = 0
                         matrix.append(element)
@@ -68,7 +61,7 @@ if __name__ == "__main__":
                     i = "{}".format(index)
                     cv2.putText(frame,'frame: '+str(i),(30,45),cv2.FONT_HERSHEY_DUPLEX,1,(255,0,0),1,)
                     cv2.imshow('frame red:',frame)
-                # time.sleep(0.25)
+                # time.sleep(0.4)
                 if cv2.waitKey(30) & 0xFF == ord('q'):
                         break
 

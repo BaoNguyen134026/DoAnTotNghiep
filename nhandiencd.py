@@ -14,7 +14,7 @@ import matplotlib.pyplot as plt
 
 def motion_kinds(point_detect):
         point_detect = np.array(point_detect)
-        detect = np.arange(len(point_detect)).reshape(len(point_detect),1).tolist()
+        detect = np.arange(len(point_detect)).reshape((len(point_detect),1)).tolist()
         i_point_detect = point_detect[0]
 
         for i in range(len(point_detect)):
