@@ -14,10 +14,12 @@ import matplotlib.pyplot as plt
 
 
 
-a = np.arange(15).reshape((15,))
-print(a)
-b = [i for i in a if i >5]
-print('b = ',b)
-print('len b = ',len(b))
+a = np.arange(15*3).reshape((15,3))
+print('mang truoc:\n',a)
+a[0][1] = 0.002-0.004
+print('mang sau: \n',a)
+# b = [i for i in a if i >5]
+# print('b = ',b)
+# print('len b = ',len(b))
 # enumerate   
 # print(a.count(1))

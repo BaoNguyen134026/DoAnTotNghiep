@@ -8,20 +8,20 @@ from sklearn import metrics
 import numpy as np
 import pickle
 # import pandas
-data = np.load("sp/data.npy")
+data = np.load("/home/bao/Desktop/video/sp/data.npy")
 data = np.reshape(data, (len(data),15*3))
 # print(data[0][50])
 
 
 # print(data[0].shape)
-target = np.load("sp/target.npy")
+target = np.load("/home/bao/Desktop/video/sp/target.npy")
 
 X_train, X_test, Y_train, Y_test = train_test_split(data, target, test_size=0.3, random_state=109)
 # Fit the model on training set
 model = LogisticRegression()
 model.fit(X_train, Y_train)
 # save the model to disk
-filename = 'sp/traindongtac.sav'
+filename = '/home/bao/Desktop/video/sp/traindongtac.sav'
 pickle.dump(model, open(filename, 'wb'))
  
 # some time later...
