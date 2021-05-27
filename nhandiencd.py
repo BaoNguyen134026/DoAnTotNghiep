@@ -15,24 +15,21 @@ import matplotlib.pyplot as plt
 def motion_kinds(point_detect):
         point_detect = np.array(point_detect)
         detect = np.arange(len(point_detect)).reshape((len(point_detect),1)).tolist()
-        i_point_detect = point_detect[0]
-
-        for i in range(len(point_detect)):
-            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-i_point_detect[0],2)
-                                    +m.pow(point_detect[i][1]-i_point_detect[1],2)
-                                    +m.pow(point_detect[i][2]-i_point_detect[2],2))
-            # P15_distance[i] = 1
-        b = [i for i in P15_distance if i >0.08]
+        for i in range(1,len(point_detect)):
+            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-point_detect[i-1][0],2)
+                                    +m.pow(point_detect[i][1]-point_detect[i-1][1],2)
+                                    +m.pow(point_detect[i][2]-point_detect[i-1][2],2))
+        b = [i for i in P15_distance if i >0.01]
         # print('len(b) =',len(b))
         if len(b) > 11:
             for i in range(0,15):
-                detect[int(i)] =  [point_detect[int(i)][0] - i_point_detect[0],
-                                    point_detect[int(i)][1] - i_point_detect[1],
-                                    point_detect[int(i)][2] - i_point_detect[2]]
+                detect[int(i)] =  [point_detect[int(i)][0] - point_detect[0][0],
+                                    point_detect[int(i)][1] - point_detect[0][1],
+                                    point_detect[int(i)][2] - point_detect[0][2]]
             detect=np.array(detect)
             detect = np.reshape(detect,(1,45))
             a = loaded_model.predict(detect)
-        else: a = [0]
+        else: a = None
         return a 
 def motion_detection(point_3d):
     global first_loop, cnt, Points_15, Points_3
@@ -90,5 +87,5 @@ if __name__ == "__main__":
             time.sleep(0.05)
             if cv2.waitKey(30) ==27 :
                 break
-    except Exception as ex:
-        print('Exception occured: "{}"'.format(ex))
+    finally:
+        cv2.destroyAllWindows()

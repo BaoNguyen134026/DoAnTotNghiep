@@ -39,7 +39,7 @@ if __name__ == "__main__":
         element = np.arange(15).reshape((15,)).tolist()
         # print(element)
         element_th = 0
-        matrix = []
+        matrix = np.empty((15,),dtype=float)
         k = 1
         #read frame from video
         for index in range(int(cap.get(7))-8):
