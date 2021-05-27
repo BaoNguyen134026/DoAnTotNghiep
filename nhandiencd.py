@@ -22,9 +22,9 @@ def motion_kinds(point_detect):
                                     +m.pow(point_detect[i][1]-i_point_detect[1],2)
                                     +m.pow(point_detect[i][2]-i_point_detect[2],2))
             # P15_distance[i] = 1
-        b = [i for i in P15_distance if i >0.1]
-        print('len(b) =',len(b))
-        if len(b) > 12:
+        b = [i for i in P15_distance if i >0.08]
+        # print('len(b) =',len(b))
+        if len(b) > 11:
             for i in range(0,15):
                 detect[int(i)] =  [point_detect[int(i)][0] - i_point_detect[0],
                                     point_detect[int(i)][1] - i_point_detect[1],
@@ -51,6 +51,7 @@ def motion_detection(point_3d):
                                 point_3d[1],
                                 point_3d[2]]
             cnt+=1
+             
         else:
             for ii in range(0,12):
                 Points_15[int(ii)] = [Points_15[int(ii)+3][0],
@@ -61,13 +62,14 @@ def motion_detection(point_3d):
                                     Points_3[int(ii)-12][1],
                                     Points_3[int(ii)-12][2]]
             cnt = 0
-        return motion_kinds(Points_15)
+            return motion_kinds(Points_15)
+        
 
 if __name__ == "__main__":
     try:
         cap1 = cv2.VideoCapture('/home/bao/Downloads/outpy.avi')
         f1 = np.load("/home/bao/Downloads/save3d.npy")
-        loaded_model = pickle.load(open('/home/bao/Desktop/DoAnTotNghiep/sp/traindongtac.sav', 'rb'))
+        loaded_model = pickle.load(open('/home/bao/Desktop/video/sp/traindongtac.sav', 'rb'))
         #initialized variable
         first_loop = True
         Points_3 = np.arange(3).reshape((3,1)).tolist()
@@ -80,11 +82,12 @@ if __name__ == "__main__":
             point_3d = f1[int(index)]
             if point_3d is not None:
                 k = motion_detection(point_3d)
-                print('k=',k)
+                if k is not None:
+                    print('k=\n',k)
                 # pass
             #show video
             cv2.imshow('video',frame)
-            time.sleep(0.25)
+            time.sleep(0.05)
             if cv2.waitKey(30) ==27 :
                 break
     except Exception as ex:
