@@ -3,7 +3,7 @@ from collections import namedtuple
 import util as cm
 import cv2
 import time
-# import pyrealsense2 as rs
+import pyrealsense2 as rs
 import math
 import numpy as np
 from skeletontracker import skeletontracker
@@ -37,7 +37,6 @@ def render_ids_3d(
         joints_2D = skeleton_2D.joints
         did_once = False
         i=0
-        
         cnt = 0
         save = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         for joint_index in range(len(joints_2D)):
@@ -115,120 +114,142 @@ def render_ids_3d(
             
         if cnt == 18:
             return save
-        else:
-            save = None
-            return save
+        else: return None
 def motion_kinds(point_detect):
         point_detect = np.array(point_detect)
-        detect = np.arange(15).reshape((15,1)).tolist()
-
-        i_point_detect = point_detect[0]
-        for iii in range(0,15):
-            detect[int(iii)] =  [point_detect[int(iii)][0] - i_point_detect[0],
-                            point_detect[int(iii)][1] - i_point_detect[1],
-                            point_detect[int(iii)][2] - i_point_detect[2]]
-        detect=np.array(detect)
-        detect = np.reshape(detect,(1,45))
-
-        a = loaded_model.predict(detect)
-        # print(a)
-        return a
+        detect = np.arange(len(point_detect)).reshape((len(point_detect),1)).tolist()
+        for i in range(1,len(point_detect)):
+            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-point_detect[i-1][0],2)
+                                    +m.pow(point_detect[i][1]-point_detect[i-1][1],2)
+                                    +m.pow(point_detect[i][2]-point_detect[i-1][2],2))
+        b = [i for i in P15_distance if i >0.01]
+        # print('len(b) =',len(b))
+        if len(b) > 11:
+            for i in range(0,15):
+                detect[int(i)] =  [point_detect[int(i)][0] - point_detect[0][0],
+                                    point_detect[int(i)][1] - point_detect[0][1],
+                                    point_detect[int(i)][2] - point_detect[0][2]]
+            detect=np.array(detect)
+            detect = np.reshape(detect,(1,45))
+            a = loaded_model.predict(detect)
+        else: a = None
+        return a 
 def motion_detection(point_3d):
-    global first_loop, cnt, fifteen_temporary_points, three_temporary_points
+    global first_loop, cnt, Points_15, Points_3
     if first_loop == True:
-        fifteen_temporary_points[cnt - 1] = [point_3d[0],
+        Points_15[cnt - 1] = [point_3d[0],
                             point_3d[1],
                             point_3d[2]]
         cnt+=1
         if cnt >= 15:
             first_loop = False
             cnt = 0
-            return motion_kinds(fifteen_temporary_points)
-
+            return motion_kinds(Points_15)
     else:
-        if point_3d[0] - fifteen_temporary_points[0] >= 0.5:
-            
-            pass
         if cnt <= 2:
-            three_temporary_points[cnt] = [point_3d[0],
+            Points_3[cnt] = [point_3d[0],
                                 point_3d[1],
                                 point_3d[2]]
             cnt+=1
+             
         else:
             for ii in range(0,12):
-                fifteen_temporary_points[int(ii)] = [fifteen_temporary_points[int(ii)+3][0],
-                                                    fifteen_temporary_points[int(ii)+3][1],
-                                                    fifteen_temporary_points[int(ii)+3][2]]
+                Points_15[int(ii)] = [Points_15[int(ii)+3][0],
+                                                    Points_15[int(ii)+3][1],
+                                                    Points_15[int(ii)+3][2]]
             for ii in range(12,15):
-                fifteen_temporary_points[int(ii)] = [three_temporary_points[int(ii)-12][0],
-                                    three_temporary_points[int(ii)-12][1],
-                                    three_temporary_points[int(ii)-12][2]]
+                Points_15[int(ii)] = [Points_3[int(ii)-12][0],
+                                    Points_3[int(ii)-12][1],
+                                    Points_3[int(ii)-12][2]]
             cnt = 0
-        return motion_kinds(fifteen_temporary_points)
+            return motion_kinds(Points_15)
 # Main content begins
 if __name__ == "__main__":
     try:
         # Configure depth and color streams of the intel realsense
-        config = rs.config()
-        config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
-        config.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
+        #...from Camera 1
+        config_1 = rs.config()
+        config_1.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
+        config_1.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
+        #...from Camera 2
+        config_2 = rs.config()
+        config_2.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
+        config_2.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
+
         # Start the realsense pipeline
-        pipeline = rs.pipeline()
-        pipeline.start(config)
+        #...from Camera 1
+        pipeline_1 = rs.pipeline()
+        pipeline_1.start(config_1)
+        #...from Camera 2
+        pipeline_2 = rs.pipeline()
+        pipeline_2.start(config_2)
+
         # Create align object to align depth frames to color frames
-        align = rs.align(rs.stream.color)
+        #...from Camera 1
+        align_1 = rs.align(rs.stream.color)
+        #...from Camera 2
+        align_2 = rs.align(rs.stream.color)
+
         # Get the intrinsics information for calculation of 3D point
-        unaligned_frames = pipeline.wait_for_frames()
-        frames = align.process(unaligned_frames)
-        depth = frames.get_depth_frame()
-        depth_intrinsic = depth.profile.as_video_stream_profile().intrinsics
-        color = frames.get_color_frame()
-        color_image = np.asanyarray(color.get_data())
+        #...from Camera 1
+        unaligned_frames_1 = pipeline_1.wait_for_frames()
+        frames_1 = align_1.process(unaligned_frames_1)
+        depth_frame_1 = frames_1.get_depth_frame()
+        depth_intrinsic_1 = depth_frame_1.profile.as_video_stream_profile().intrinsics
+        color_1 = frames_1.get_color_frame()
+        color_image_1= np.asanyarray(color_1.get_data())
+        #...from Camera 2
+        unaligned_frames_2 = pipeline_2.wait_for_frames()
+        frames_2 = align_2.process(unaligned_frames_2)
+        depth_frame_2 = frames_2.get_depth_frame()
+        depth_intrinsic_2 = depth_frame_1.profile.as_video_stream_profile().intrinsics
+        color_2 = frames_1.get_color_frame()
+        color_image_2 = np.asanyarray(color_2.get_data())
+        
         # Initialize the cubemos api with a valid license key in default_license_dir()
         skeletrack = skeletontracker(cloud_tracking_api_key="")
         joint_confidence = 0.2
+
         # Create window for initialisation
         window_name = "cubemos skeleton tracking with realsense D400 series"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
-        out = cv2.VideoWriter('body_yen_tudo.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
-        # out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (848,480))
-        first_loop = True
-        three_temporary_points = np.arange(3).reshape((3,1)).tolist()
-        fifteen_temporary_points = np.arange(15).reshape((15,1)).tolist()
+        
+        # Initialize
+        out = cv2.VideoWriter('outpy2.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
+        loaded_model = pickle.load(open('byt.sav', 'rb'))
+        P15_distance = np.arange(15).reshape((15,)).tolist()
+        Points_15 = np.arange(15).reshape((15,1)).tolist()
+        Points_3 = np.arange(3).reshape((3,1)).tolist()
         cnt = 0
-        loaded_model = pickle.load(open('sp/traindongtac.sav', 'rb'))
+        first_loop = True
         while True:
-            # Create a pipeline object. This object configures the streaming camera and owns it's handle
-            unaligned_frames = pipeline.wait_for_frames()
-            frames = align.process(unaligned_frames)
-            depth = frames.get_depth_frame()
-            color = frames.get_color_frame()
-            if not depth or not color:
+            # Create a pipeline_1 object. This object configures the streaming camera and owns it's handle
+            unaligned_frames_1 = pipeline_1.wait_for_frames()
+            frames_1 = align_1.process(unaligned_frames_1)
+            depth_frame_1 = frames_1.get_depth_frame()
+            color_1 = frames_1.get_color_frame()
+            if not depth_frame_1 or not color_1:
                 continue
             # Convert images to numpy arrays
-            depth_image = np.asanyarray(depth.get_data())
-            color_image = np.asanyarray(color.get_data())
-            color_image = cv2.cvtColor(color_image, cv2.COLOR_BGR2RGB)
-            # perform inference and update the tracking id
-            skeletons = skeletrack.track_skeletons(color_image)
-            # print(skeletons)
-            # render the skeletons on top of the acquired image and display it
-            cm.render_result(skeletons, color_image, joint_confidence)
-            points3d_skeleton = render_ids_3d(color_image, skeletons, depth, depth_intrinsic, joint_confidence)
+            depth_image = np.asanyarray(depth_frame_1.get_data())
+            color_image_1 = np.asanyarray(color_1.get_data())
+            color_image_1 = cv2.cvtColor(color_image_1, cv2.COLOR_BGR2RGB)
 
-            if points3d_skeleton is not None:
-                montion_kind = motion_detection(points3d_skeleton[4])
-                print(montion_kind)
-                        
-            cv2.imshow(window_name, color_image)
+            # perform inference and update the tracking id
+            skeletons = skeletrack.track_skeletons(color_image_1)
+            # render the skeletons on top of the acquired image and display it
+            cm.render_result(skeletons, color_image_1, joint_confidence)
+            P3d_Skeletons = render_ids_3d(  color_image_1,
+                                        skeletons,
+                                        depth_frame_1,
+                                        depth_intrinsic_1,
+                                        joint_confidence )
+
+            cv2.imshow(window_name, color_image_1)
             if cv2.waitKey(1) == 27:
                 break
-
-        pipeline.stop()
+        pipeline_1.stop()
         cv2.destroyAllWindows()
-        # matrix = np.array(matrix)
-        # print('matrix = ',matrix)
-        # np.save('body_yen_tudo',matrix)
 
     except Exception as ex:
         print('Exception occured: "{}"'.format(ex))

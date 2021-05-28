@@ -105,10 +105,8 @@ def render_ids_3d(
                         np.save('videosource/tonghop',save)
                         # aaa+=1
                         print('saving')
-                    
                     cv2.putText(
                         render_image,
-                    
                         str(i) + ' ' + str(point_3d) ,
                         (int(joints_2D[joint_index].x), int(joints_2D[joint_index].y)),
                         cv2.FONT_HERSHEY_DUPLEX,
@@ -116,19 +114,6 @@ def render_ids_3d(
                         text_color,
                         thickness,
                     )
-                # elif joint_index == 4:
-                #     save.append([0,0,0])
-                #     np.save('save3d2',save)
-                #     print('khong 4')
-            # elif joint_index == 4 and skeletons_2d != []:
-            #     save.append([0,0,0])
-            #     np.save('save3d2',save)
-            #     print('khong 4')
-
-
-
-
-
 # Main content begins
 if __name__ == "__main__":
     try:
