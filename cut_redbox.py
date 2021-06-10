@@ -29,7 +29,7 @@ if __name__ == "__main__":
         cap = cv2.VideoCapture('/home/bao/Desktop/video/source_train/trai.avi')
         points_3d = np.load("/home/bao/Desktop/video/source_train/trai.npy")
         #setup
-        name_video_p3d = '/home/bao/Desktop/video/sp/sp_trai'
+        name_video_p3d = '/home/bao/Desktop/video/sp/a'
         # print(points_3d)
         x,y,w,h = 550,228,30,20
         out = cv2.VideoWriter(name_video_p3d +'.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (848,480))

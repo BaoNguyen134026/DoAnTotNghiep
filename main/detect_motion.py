@@ -113,54 +113,6 @@ def render_ids_3d(
         if cnt == 18:
             return save
         else: return None
-def motion_kinds(point_detect):
-        point_detect = np.array(point_detect)
-        detect = np.arange(len(point_detect)).reshape((len(point_detect),1)).tolist()
-        for i in range(1,len(point_detect)):
-            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-point_detect[i-1][0],2)
-                                    +m.pow(point_detect[i][1]-point_detect[i-1][1],2)
-                                    +m.pow(point_detect[i][2]-point_detect[i-1][2],2))
-        b = [i for i in P15_distance if i >0.01]
-        # print('len(b) =',len(b))
-        if len(b) > 11:
-            for i in range(0,15):
-                detect[int(i)] =  [point_detect[int(i)][0] - point_detect[0][0],
-                                    point_detect[int(i)][1] - point_detect[0][1],
-                                    point_detect[int(i)][2] - point_detect[0][2]]
-            detect=np.array(detect)
-            detect = np.reshape(detect,(1,45))
-            a = loaded_model.predict(detect)
-        else: a = None
-        return a 
-def motion_detection(point_3d):
-    global first_loop, cnt, Points_15, Points_3
-    if first_loop == True:
-        Points_15[cnt - 1] = [point_3d[0],
-                            point_3d[1],
-                            point_3d[2]]
-        cnt+=1
-        if cnt >= 15:
-            first_loop = False
-            cnt = 0
-            return motion_kinds(Points_15)
-    else:
-        if cnt <= 2:
-            Points_3[cnt] = [point_3d[0],
-                                point_3d[1],
-                                point_3d[2]]
-            cnt+=1
-             
-        else:
-            for ii in range(0,12):
-                Points_15[int(ii)] = [Points_15[int(ii)+3][0],
-                                                    Points_15[int(ii)+3][1],
-                                                    Points_15[int(ii)+3][2]]
-            for ii in range(12,15):
-                Points_15[int(ii)] = [Points_3[int(ii)-12][0],
-                                    Points_3[int(ii)-12][1],
-                                    Points_3[int(ii)-12][2]]
-            cnt = 0
-            return motion_kinds(Points_15)
 def post_process_depth_frame(depth_frame):
     """
     Filter the depth frame acquired using the Intel RealSense device
@@ -218,8 +170,8 @@ def post_process_depth_frame(depth_frame):
     filtered_frame = decimation_filter.process(depth_frame)
     filtered_frame = spatial_filter.process(filtered_frame)
     filtered_frame = temporal_filter.process(filtered_frame)
-
     return filtered_frame
+
 def point_cloud(df1,df2):
     #Get pcd
     # Point Cloud
