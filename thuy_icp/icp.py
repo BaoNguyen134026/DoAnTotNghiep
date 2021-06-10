@@ -34,7 +34,7 @@ source = o3d.io.read_point_cloud("source.pcd")
 target = o3d.io.read_point_cloud("target.pcd")
 
 
-trans_init, trans_init2 = np.asarray([[ 0.42759956,  0.11147117, -0.897069,   -1.6197444 ],
+trans_init = np.asarray([[ 0.42759956,  0.11147117, -0.897069,   -1.6197444 ],
                          [-0.16436256,  0.98541353,  0.04410346,  0.11142216],
                          [ 0.8889002,   0.12858594,  0.43968408, -1.25518773],
                          [ 0.0,         0.0,         0.0,         1.0]])
