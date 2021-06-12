@@ -163,16 +163,20 @@ if __name__ == "__main__":
 
             
             # perform inference and update the tracking id
+
+
+            ##### nhận diện các khớp trên ảnh 2d , qua hàm này được 1 class là 'skeletons' bên dưới
             skeletons = skeletrack.track_skeletons(color_image)
-            # print(skeletons)
+
+
             # render the skeletons on top of the acquired image and display it
+            # đưa skeleton vào để  vẽ lên ảnh 2d mấy khớp xương (chỉ khớp xương)
             cm.render_result(skeletons, color_image, joint_confidence)
-            
+            # xuống hàm này thì vẽ tọa độ vs id lên ảnh 2d
             render_ids_3d(
                 color_image, skeletons, depth, depth_intrinsic, joint_confidence
             )
-            # count_frame+=1
-            # out.write(color_image)
+            #Cuối cùng được ảnh có tọa độ
 
 
             cv2.imshow(window_name, color_image)

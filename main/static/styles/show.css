@@ -1,0 +1,63 @@
+body {
+    background-image: url("image/tech.jpg");
+    background-size:cover;
+    background-repeat: no-repeat;
+    font-family: 'Times New Roman', Times, serif;
+    width: 100%;
+    height: 100%;
+    color: aliceblue;
+}
+div.header{
+    height: 5%;
+}
+nav{
+    height: 10%;
+}
+nav>ul{
+    list-style-type:none;
+    margin: 0;
+    padding-left: 1rem;
+    padding-top: 1rem;
+    display: flex;
+}
+nav>ul>li>a{
+    display: block;
+    text-decoration: none;
+    color: rgb(69, 137, 224);
+}
+nav>ul>li>a:hover{
+    background-color: white;
+    color: black;
+
+}
+h1.header_hero{
+    height: 15%;
+    width: 100%;
+    text-align: center;
+    font-size: 3rem;
+}
+div.bigbody{
+    display: flex;
+    height: 70%;
+    width: 100%;
+    margin-top: 1%;
+}
+div.body{
+    width: 50%;
+    text-align: center;
+    background-color: rgba(12, 12, 61, 0.322);
+    padding: 5px;
+    border-radius: 5px;
+    border: 5px solid rgba(3, 4, 85, 0.822);
+    margin: 0.1rem;
+    border-style: inset;
+}
+div.body:hover{
+    background-color: rgba(1, 11, 58, 0.705);
+}
+div.body > a > img{
+    width: 100%;
+    border: 2px solid rgba(21, 35, 95, 0.678);
+    border-radius: 7px;
+    height: 70%;
+}
