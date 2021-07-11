@@ -87,7 +87,6 @@ def render_ids_3d(
                     point_3d = rs.rs2_deproject_pixel_to_point(
                         depth_intrinsic, depth_pixel, median_distance
                     )
-          
                     point_3d = np.round([float(i) for i in point_3d], 3)
                     
 
@@ -195,12 +194,12 @@ if __name__ == "__main__":
         # Configure depth and color streams of the intel realsense
         #...from Camera 1
         config_1 = rs.config()
-        config_1.enable_device('013102060174')
+        config_1.enable_device('046122251324')
         config_1.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
         config_1.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
         #...from Camera 2
         config_2 = rs.config()
-        config_2.enable_device('013102060174')
+        config_2.enable_device('108222250284')
         config_2.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
         config_2.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
 
@@ -230,8 +229,8 @@ if __name__ == "__main__":
         unaligned_frames_2 = pipeline_2.wait_for_frames()
         frames_2 = align_2.process(unaligned_frames_2)
         depth_frame_2 = frames_2.get_depth_frame()
-        depth_intrinsic_2 = depth_frame_1.profile.as_video_stream_profile().intrinsics
-        color_2 = frames_1.get_color_frame()
+        depth_intrinsic_2 = depth_frame_2.profile.as_video_stream_profile().intrinsics
+        color_2 = frames_2.get_color_frame()
         color_image_2 = np.asanyarray(color_2.get_data())
         
         # Initialize the cubemos api with a valid license key in default_license_dir()
@@ -241,10 +240,10 @@ if __name__ == "__main__":
         # Create window for initialisation
         window_name = "cubemos skeleton tracking with realsense D400 series"
         cv2.namedWindow(window_name, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
-        
+
         # Initialize
-        out = cv2.VideoWriter('outpy2.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
-        loaded_model = pickle.load(open('byt.sav', 'rb'))
+        out = cv2.VideoWriter('outpy2.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image_1.shape[1],color_image_1.shape[0]))
+        # loaded_model = pickle.load(open('byt.sav', 'rb'))
         P15_distance = np.arange(15).reshape((15,)).tolist()
         Points_15 = np.arange(15).reshape((15,1)).tolist()
         Points_3 = np.arange(3).reshape((3,1)).tolist()
@@ -263,25 +262,31 @@ if __name__ == "__main__":
             depth_frame_2 = frames_2.get_depth_frame()
             color_2 = frames_2.get_color_frame()
 
-            if not depth_frame_1 or not depth_frame_2 or not color_1:
+            if not depth_frame_1 or not depth_frame_2 or not color_1 or not color_2:
                 continue
             # Convert images to numpy arrays
-            depth_image = np.asanyarray(depth_frame_1.get_data())
+            #...from camera 1
+            depth_image_1 = np.asanyarray(depth_frame_1.get_data())
             color_image_1 = np.asanyarray(color_1.get_data())
             color_image_1 = cv2.cvtColor(color_image_1, cv2.COLOR_BGR2RGB)
-
+            #...from camera 2
+            depth_image_2 = np.asanyarray(depth_frame_2.get_data())
+            color_image_2 = np.asanyarray(color_2.get_data())
+            color_image_2 = cv2.cvtColor(color_image_2, cv2.COLOR_BGR2RGB)
             # perform inference and update the tracking id
             skeletons = skeletrack.track_skeletons(color_image_1)
+
             # render the skeletons on top of the acquired image and display it
             cm.render_result(skeletons, color_image_1, joint_confidence)
             P3d_Skeletons = render_ids_3d(  color_image_1,
                                         skeletons,
                                         depth_frame_1,
                                         depth_intrinsic_1,
-                                        joint_confidence )
-            if not P3d_Skeletons:
-                pass
+                                        joint_confidence)
+            # if not P3d_Skeletons:
+            #     pass
             cv2.imshow(window_name, color_image_1)
+            cv2.imshow('2',color_image_2)
             if cv2.waitKey(1) == 27:
                 break
         pipeline_1.stop()

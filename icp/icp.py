@@ -13,42 +13,41 @@ import matplotlib.pyplot as plt
 #     o3d.visualization.draw_geometries([source_temp, target_temp])
     
 
-# source = o3d.io.read_point_cloud("obj1.pcd")
-# target = o3d.io.read_point_cloud("obj0.pcd")
+source = o3d.io.read_point_cloud("obj1.pcd")
+target = o3d.io.read_point_cloud("obj0.pcd")
 
 threshold = 0.02
 
-# trans_init = np.asarray([[1, 0, 0, 0],
-#                          [0, 1, 0, 0],
-#                          [0, 0, 1, 0], [0.0, 0.0, 0.0, 1.0]])
+trans_init = np.asarray([[1, 0, 0, 0],
+                         [0, 1, 0, 0],
+                         [0, 0, 1, 0],
+                         [0.0, 0.0, 0.0, 1.0]])
 
 # print("Apply point-to-plane ICP")
-# reg_p2l = o3d.pipelines.registration.registration_icp(
-#     source, target, threshold, trans_init, 
-#     o3d.pipelines.registration.TransformationEstimationPointToPlane())
-# # print(reg_p2l)
-# print("Transformation is:")
+reg_p2l = o3d.pipelines.registration.registration_icp(
+    source, target, threshold, trans_init, 
+    o3d.pipelines.registration.TransformationEstimationPointToPlane())
 # print(reg_p2l.transformation)
 
 source = o3d.io.read_point_cloud("/home/bao/Desktop/DoAnTotNghiep/icp/source.pcd")
 target = o3d.io.read_point_cloud("/home/bao/Desktop/DoAnTotNghiep/icp/target.pcd")
 
 
-trans_init = np.asarray([[ 0.42759956,  0.11147117, -0.897069,   -1.6197444 ],
-                         [-0.16436256,  0.98541353,  0.04410346,  0.11142216],
-                         [ 0.8889002,   0.12858594,  0.43968408, -1.25518773],
-                         [ 0.0,         0.0,         0.0,         1.0]])
+# trans_init = np.asarray([[ 0.42759956,  0.11147117, -0.897069,   -1.6197444 ],
+#                          [-0.16436256,  0.98541353,  0.04410346,  0.11142216],
+#                          [ 0.8889002,   0.12858594,  0.43968408, -1.25518773],
+#                          [ 0.0,         0.0,         0.0,         1.0]])
 
 source.paint_uniform_color([1, 0.706, 0])
 target.paint_uniform_color([0, 0.651, 0.929])
-# source.transform(reg_p2l.transformation)
-source.transform(trans_init)
+source.transform(reg_p2l.transformation)
+# source.transform(trans_init)
 print(source)
-o3d.visualization.draw_geometries([source, target])
+# o3d.visualization.draw_geometries([source, target])
 
 
 newpointcloud = source + target
-print("Downsample the point cloud with a voxel of 0.05")
+# print("Downsample the point cloud with a voxel of 0.05")
 downpcd = newpointcloud.voxel_down_sample(voxel_size=0.02)
 # o3d.visualization.draw_geometries([downpcd])
 
@@ -62,10 +61,12 @@ with o3d.utility.VerbosityContextManager(
     labels = np.array(
         pcd.cluster_dbscan(eps=0.05, min_points=20, print_progress=False))
 max_label = labels.max()
-print(f"point cloud has {max_label + 1} clusters")
+
+print("labels",labels[3500:3794])
+# print(f"point cloud has {max_label + 1} clusters")
 colors = plt.get_cmap("tab20")(labels / (max_label if max_label > 0 else 1))
 colors[labels < 0] = 0  # colors: <class 'numpy.ndarray'>
-
+print("color",colors)
 
 # #### create pcd after dbscan
 xyz = np.asarray(pcd.points)
@@ -73,10 +74,12 @@ xyz_pcd = []
 for i in range(len(colors[:,3])):
     if colors[i,3] == 1:
         xyz_pcd.append([xyz[i,0], xyz[i,1], xyz[i,2]])
+
+
 pc = o3d.geometry.PointCloud()
 pc.points = o3d.utility.Vector3dVector(xyz_pcd)
 pc.paint_uniform_color([1, 0.706, 0])
-o3d.visualization.draw_geometries([pc])
+# o3d.visualization.draw_geometries([pc])
 
 
 ###############################################################################

@@ -140,6 +140,9 @@ lin2.fit(X_poly, y)
 plt.scatter(x, y, color = 'blue')
   
 plt.plot(x, lin2.predict(poly.fit_transform(x)), color = 'red')
+
+
+
 plt.title('Polynomial Regression')
 plt.xlabel('Temperature')
 plt.ylabel('Pressure')

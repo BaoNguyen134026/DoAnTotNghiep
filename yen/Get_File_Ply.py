@@ -24,14 +24,17 @@ decimation.set_option(rs.option.filter_magnitude,2)
 spatial = rs.spatial_filter()
 spatial.set_option(rs.option.filter_magnitude,2)
 spatial.set_option(rs.option.filter_smooth_alpha,0.5)
-spatial.set_option(rs.option.filter_smooth_delta,20)
+spatial.set_option(rs.option.filter_smooth_delta,30)
 
 temporal = rs.temporal_filter()
 temporal.set_option(rs.option.filter_smooth_alpha,0.4)
-temporal.set_option(rs.option.filter_smooth_delta,20)
+temporal.set_option(rs.option.filter_smooth_delta,100)
 
+threshold = rs.threshold_filter()
+# threshold.set_option(rs.option.filter_max_distance,2.1)
 filters = [rs.disparity_transform(),
-           rs.spatial_filter(),
+           spatial,
+        #    temporal,
            rs.temporal_filter(),
            rs.disparity_transform(False)]
 
@@ -40,9 +43,9 @@ for i in range(30):
 
 frames = pipeline.wait_for_frames()
 depth_frame = frames.get_depth_frame()
-
-for f in filters:
-    depth_frame = f.process(depth_frame)
+time.sleep(5)
+# for f in filters:
+#     depth_frame = f.process(depth_frame)
 
 colorized = colorizer.process(frames)
 
@@ -53,10 +56,10 @@ colorized = colorizer.process(frames)
 pipeline.stop()
 
 ###########get file .ply
-ply = rs.save_to_ply("test.ply")
+ply = rs.save_to_ply("bao4.ply")
 ply.set_option(rs.save_to_ply.option_ply_binary, False)
 ply.set_option(rs.save_to_ply.option_ply_normals, True)
 ply.process(colorized)
 
-pcd = o3d.io.read_point_cloud('test.ply')
+pcd = o3d.io.read_point_cloud('bao4.ply')
 o3d.visualization.draw_geometries([pcd])
