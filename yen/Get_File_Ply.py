@@ -44,8 +44,8 @@ for i in range(30):
 frames = pipeline.wait_for_frames()
 depth_frame = frames.get_depth_frame()
 time.sleep(5)
-# for f in filters:
-#     depth_frame = f.process(depth_frame)
+for f in filters:
+    depth_frame = f.process(depth_frame)
 
 colorized = colorizer.process(frames)
 

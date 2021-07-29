@@ -13,17 +13,19 @@ import util as cm
 import cv2
 import time
 import pyrealsense2 as rs
-import math as m
+import math
 import numpy as np
 from skeletontracker import skeletontracker
+
+import open3d as o3d
 
 def motion_kinds(point_detect):
         point_detect = np.array(point_detect)
         detect = np.arange(len(point_detect)).reshape((len(point_detect),1)).tolist()
         for i in range(1,len(point_detect)):
-            P15_distance[i] = m.sqrt(m.pow(point_detect[i][0]-point_detect[i-1][0],2)
-                                    +m.pow(point_detect[i][1]-point_detect[i-1][1],2)
-                                    +m.pow(point_detect[i][2]-point_detect[i-1][2],2))
+            P15_distance[i] = math.sqrt(math.pow(point_detect[i][0]-point_detect[i-1][0],2)
+                                    +math.pow(point_detect[i][1]-point_detect[i-1][1],2)
+                                    +math.pow(point_detect[i][2]-point_detect[i-1][2],2))
         b = [i for i in P15_distance if i >0.01]
         # print('len(b) =',len(b))
         if len(b) > 11:
@@ -69,19 +71,22 @@ def motion_detection(point_3d):
 
 def render_ids_3d(
     render_image, skeletons_2d, depth_map, depth_intrinsic, joint_confidence):
-    # print(cnt)
     thickness = 1
     text_color = (255, 255, 255)
     rows, cols, channel = render_image.shape[:3]
+
     distance_kernel_size = 5
-    # calculate 3D keypoints and display them
+    
     for skeleton_index in range(len(skeletons_2d)):
         if skeletons_2d[skeleton_index] == []:
             break
+        
         skeleton_2D = skeletons_2d[skeleton_index]
         joints_2D = skeleton_2D.joints
         did_once = False
         i=0
+        cnt = 0
+        save = [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]
         for joint_index in range(len(joints_2D)):
             if did_once == False:
                 cv2.putText(
@@ -101,24 +106,24 @@ def render_ids_3d(
                 low_bound_x = max(
                     0,
                     int(
-                        joints_2D[joint_index].x - m.floor(distance_kernel_size / 2)
+                        joints_2D[joint_index].x - math.floor(distance_kernel_size / 2)
                     )
                 )
 
                 upper_bound_x = min(
                     cols - 1,
-                    int(joints_2D[joint_index].x + m.ceil(distance_kernel_size / 2)),
+                    int(joints_2D[joint_index].x + math.ceil(distance_kernel_size / 2)),
                 )
 
                 low_bound_y = max(
                     0,
                     int(
-                        joints_2D[joint_index].y - m.floor(distance_kernel_size / 2)
+                        joints_2D[joint_index].y - math.floor(distance_kernel_size / 2)
                     ),
                 )
                 upper_bound_y = min(
                     rows - 1,
-                    int(joints_2D[joint_index].y + m.ceil(distance_kernel_size / 2)),
+                    int(joints_2D[joint_index].y + math.ceil(distance_kernel_size / 2)),
                 )
                 for x in range(low_bound_x, upper_bound_x):
                     for y in range(low_bound_y, upper_bound_y):
@@ -129,17 +134,20 @@ def render_ids_3d(
                     int(joints_2D[joint_index].y),
                 ]
                 if median_distance >= 0.3:
-
                     point_3d = rs.rs2_deproject_pixel_to_point(
                         depth_intrinsic, depth_pixel, median_distance
                     )
                     point_3d = np.round([float(i) for i in point_3d], 3)
-                    point_str = [str(x) for x in point_3d]
                     
-                    if joint_index == 4 :
-                        return point_3d
-                                     
+
+                    point_str = [str(x) for x in point_3d]
                     i = "{}".format(joint_index)
+                    
+                    cnt +=1
+                    save[cnt-1] = [point_3d[0],
+                                        point_3d[1],
+                                        point_3d[2]]
+                    
                     cv2.putText(
                         render_image,
                     
@@ -150,13 +158,20 @@ def render_ids_3d(
                         text_color,
                         thickness,
                     )
+            
+        if cnt == 18:
+            return save
+        else: return None
 # Main content begins
 if __name__ == "__main__":
     try:
+        time.sleep(5)
         # Configure depth and color streams of the intel realsense
         config = rs.config()
         config.enable_stream(rs.stream.depth, 848, 480, rs.format.z16, 30)
         config.enable_stream(rs.stream.color, 848, 480, rs.format.rgb8, 30)
+
+        colorizer = rs.colorizer()
 
         # Start the realsense pipeline
         pipeline = rs.pipeline()
@@ -164,9 +179,11 @@ if __name__ == "__main__":
 
         # Create align object to align depth frames to color frames
         align = rs.align(rs.stream.color)
-
+        for i in range(30):
+            pipeline.wait_for_frames()
         # Get the intrinsics information for calculation of 3D point
         unaligned_frames = pipeline.wait_for_frames()
+
         frames = align.process(unaligned_frames)
         depth = frames.get_depth_frame()
         depth_intrinsic = depth.profile.as_video_stream_profile().intrinsics
@@ -176,10 +193,9 @@ if __name__ == "__main__":
         # Initialize the cubemos api with a valid license key in default_license_dir()
         skeletrack = skeletontracker(cloud_tracking_api_key="")
         joint_confidence = 0.2
-
+        dem = 0
         # Create window for initialisation
         window_name = "cubemos skeleton tracking with realsense D400 series"
-        cv2.namedWindow(window_name, cv2.WINDOW_NORMAL + cv2.WINDOW_KEEPRATIO)
         out = cv2.VideoWriter('outpy2.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 30, (color_image.shape[1],color_image.shape[0]))
         # out = cv2.VideoWriter('outpy.avi',cv2.VideoWriter_fourcc('M','J','P','G'), 10, (848,480))
         loaded_model = pickle.load(open('byt.sav', 'rb'))
@@ -189,15 +205,19 @@ if __name__ == "__main__":
         # print('point_n',point_n)
         cnt = 0
         first_loop = True
+        spatial = rs.spatial_filter()
+        spatial.set_option(rs.option.filter_magnitude,2)
+        spatial.set_option(rs.option.filter_smooth_alpha,0.5)
+        spatial.set_option(rs.option.filter_smooth_delta,30)
         while True:
             # Create a pipeline object. This object configures the streaming camera and owns it's handle
             unaligned_frames = pipeline.wait_for_frames()
             frames = align.process(unaligned_frames)
             depth = frames.get_depth_frame()
             color = frames.get_color_frame()
+            
             if not depth or not color:
                 continue
-
             # Convert images to numpy arrays
             depth_image = np.asanyarray(depth.get_data())
             color_image = np.asanyarray(color.get_data())
@@ -212,16 +232,55 @@ if __name__ == "__main__":
             # render the skeletons on top of the acquired image and display it
             cm.render_result(skeletons, color_image, joint_confidence)
             
-            joint_4th = render_ids_3d(
+            skeletons_3D = render_ids_3d(
                 color_image, skeletons, depth, depth_intrinsic, joint_confidence
             )
-
             cv2.imshow(window_name, color_image)
+
+            if skeletons_3D is not None:
+                depth = spatial.process(depth)
+                if dem == 0:
+                    colorized = colorizer.process(unaligned_frames)
+                    ply = rs.save_to_ply("bao_and_skeleton.ply")
+                    ply.set_option(rs.save_to_ply.option_ply_binary, False)
+                    ply.set_option(rs.save_to_ply.option_ply_normals, True)
+                    ply.process(colorized)
+                    dem+=1
+                    np.save('skeleton3D',skeletons_3D)
+                    print("da save hinh 0")
+                    time.sleep(4)
+                elif dem == 1:
+                    colorized = colorizer.process(unaligned_frames)
+                    ply = rs.save_to_ply("bao_and_skeleton1.ply")
+                    ply.set_option(rs.save_to_ply.option_ply_binary, False)
+                    ply.set_option(rs.save_to_ply.option_ply_normals, True)
+                    ply.process(colorized)
+                    dem+=1
+                    np.save('skeleton3D1',skeletons_3D)
+                    print("da save hinh 1")
+                    time.sleep(4)
+                else:
+                    colorized = colorizer.process(unaligned_frames)
+                    ply = rs.save_to_ply("bao_and_skeleton2.ply")
+                    ply.set_option(rs.save_to_ply.option_ply_binary, False)
+                    ply.set_option(rs.save_to_ply.option_ply_normals, True)
+                    ply.process(colorized)
+                    np.save('skeleton3D2',skeletons_3D)
+                    print("da save hinh 2")
+                    break
             if cv2.waitKey(1) == 27:
                 break
-
+        #save ply
+        print("da break")
         pipeline.stop()
         cv2.destroyAllWindows()
+        pcd0 = o3d.io.read_point_cloud('bao_and_skeleton.ply')
+        pcd1 = o3d.io.read_point_cloud('bao_and_skeleton1.ply')
+        pcd2 = o3d.io.read_point_cloud('bao_and_skeleton2.ply')
+        o3d.visualization.draw_geometries([pcd0])
+        o3d.visualization.draw_geometries([pcd1])
+        o3d.visualization.draw_geometries([pcd2])
+
 
     except Exception as ex:
         print('Exception occured: "{}"'.format(ex))
